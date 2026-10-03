@@ -338,7 +338,11 @@ with tab3:
     if rows:
         edited = apply_status_edits(rows)
 
-        state["rows"] = edited.to_dict("records")
+        if rows:
+    edited = apply_status_edits(rows)
+
+    state["rows"] = edited.to_dict("records")
+    st.session_state["run"] = state
         st.session_state["run"] = state
 
     critical = [
