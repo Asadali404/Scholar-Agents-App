@@ -1,3 +1,4 @@
+```python
 import sys
 
 import streamlit as st
@@ -29,26 +30,44 @@ from crew import (
 from tracker import enrich_records, summary
 from export import build_excel
 
-st.set_page_config(page_title="ScholarHunter Agents", page_icon="🎓", layout="wide")
+
+st.set_page_config(
+    page_title="ScholarHunter Agents",
+    page_icon="🎓",
+    layout="wide",
+)
+
 
 DATA = Path("data")
 DEMO = DATA / "demo_run.json"
 
 
 def pdf_text(upload):
+    """Extract text from an uploaded PDF."""
     reader = PdfReader(upload)
-    return "\n".join((p.extract_text() or "") for p in reader.pages)
+    return "\n".join(
+        (page.extract_text() or "")
+        for page in reader.pages
+    )
 
 
 def load_demo():
-    return json.loads(DEMO.read_text(encoding="utf-8"))
+    """Load cached demo data."""
+    return json.loads(
+        DEMO.read_text(encoding="utf-8")
+    )
 
 
 def save_state(state):
+    """Save the current application state."""
     st.session_state["run"] = state
 
 
 def apply_status_edits(rows):
+    """
+    Display the editable application tracker and return
+    the updated rows as a list of dictionaries.
+    """
     if not rows:
         return []
 
@@ -83,33 +102,54 @@ def apply_status_edits(rows):
         key="tracker_editor",
     )
 
+    # Streamlit data_editor normally returns a DataFrame.
     if hasattr(edited, "to_dict"):
         return edited.to_dict("records")
 
+    # Defensive fallback if a list is returned.
     if isinstance(edited, list):
         return edited
 
     return rows
 
 
+# ---------------------------------------------------------------------
+# PAGE HEADER / SIDEBAR
+# ---------------------------------------------------------------------
+
 st.title("🎓 ScholarHunter Agents")
-st.caption("Find. Prepare. Track. Never miss a scholarship.")
+st.caption(
+    "Find. Prepare. Track. Never miss a scholarship."
+)
+
 
 with st.sidebar:
     st.header("Candidate")
 
-    upload = st.file_uploader("Upload CV", type=["pdf", "txt"])
+    upload = st.file_uploader(
+        "Upload CV",
+        type=["pdf", "txt"],
+    )
 
     interests = st.text_area(
         "Research interests",
-        placeholder="Machine Learning, Deep Learning, Robotics",
+        placeholder=(
+            "Machine Learning, Deep Learning, Robotics"
+        ),
     )
 
-    domain = st.text_input("Target domain (optional)")
+    domain = st.text_input(
+        "Target domain (optional)"
+    )
 
     level = st.selectbox(
         "Level",
-        ["MS", "PhD", "Postdoc", "Any"],
+        [
+            "MS",
+            "PhD",
+            "Postdoc",
+            "Any",
+        ],
     )
 
     countries = st.multiselect(
@@ -128,12 +168,20 @@ with st.sidebar:
         ],
     )
 
-    custom = st.text_input("Custom country")
+    custom = st.text_input(
+        "Custom country"
+    )
 
-    if custom.strip() and custom.strip() not in countries:
+    if (
+        custom.strip()
+        and custom.strip() not in countries
+    ):
         countries = countries + [custom.strip()]
 
-    demo = st.toggle("Demo mode", value=False)
+    demo = st.toggle(
+        "Demo mode",
+        value=False,
+    )
 
     run = st.button(
         "🚀 Run Agents",
@@ -142,13 +190,28 @@ with st.sidebar:
     )
 
 
+# ---------------------------------------------------------------------
+# RUN AGENTS
+# ---------------------------------------------------------------------
+
 if run:
+
+    # -------------------------------------------------------------
+    # DEMO MODE
+    # -------------------------------------------------------------
+
     if demo:
         save_state(load_demo())
         st.success("Cached demo loaded.")
 
+    # -------------------------------------------------------------
+    # VALIDATION
+    # -------------------------------------------------------------
+
     elif not upload or not interests:
-        st.error("Upload a CV and enter research interests.")
+        st.error(
+            "Upload a CV and enter research interests."
+        )
 
     elif not os.getenv("GROQ_API_KEY"):
         st.error(
@@ -156,18 +219,34 @@ if run:
             "Streamlit Cloud → Settings → Secrets."
         )
 
+    # -------------------------------------------------------------
+    # AGENT PIPELINE
+    # -------------------------------------------------------------
+
     else:
+
+        # Extract CV text.
         if upload.name.lower().endswith(".pdf"):
             cv = pdf_text(upload)
         else:
-            cv = upload.read().decode("utf-8", errors="ignore")
+            cv = upload.read().decode(
+                "utf-8",
+                errors="ignore",
+            )
 
         with st.status(
             "Running ScholarHunter Agents...",
             expanded=True,
         ) as status:
 
-            st.write("🔎 Agent 1 — Profile Analyst")
+            # -------------------------------------------------
+            # AGENT 1
+            # -------------------------------------------------
+
+            st.write(
+                "🔎 Agent 1 — Profile Analyst"
+            )
+
             profile = profile_agent(
                 cv,
                 interests,
@@ -176,16 +255,39 @@ if run:
                 countries,
             )
 
-            st.write("🌐 Agent 2 — Opportunity Scout (max 5 searches)")
-            queries, raw = scout_agent(profile)
+            # -------------------------------------------------
+            # AGENT 2
+            # -------------------------------------------------
 
-            st.write("🧠 Agent 3 — Database + Gap Mentor")
+            st.write(
+                "🌐 Agent 2 — Opportunity Scout "
+                "(max 5 searches)"
+            )
+
+            queries, raw = scout_agent(
+                profile
+            )
+
+            # -------------------------------------------------
+            # AGENT 3
+            # -------------------------------------------------
+
+            st.write(
+                "🧠 Agent 3 — Database + Gap Mentor"
+            )
+
             records, gap = database_and_gap(
                 profile,
                 raw,
             )
 
-            st.write("📋 Agent 4 — Progress Tracker")
+            # -------------------------------------------------
+            # AGENT 4
+            # -------------------------------------------------
+
+            st.write(
+                "📋 Agent 4 — Progress Tracker"
+            )
 
             for record in records:
                 record.fit_score = fit_score(
@@ -194,21 +296,32 @@ if run:
                 )
 
             rows = enrich_records(records)
+
             weekly = tracker_summary(rows)
+
+            # -------------------------------------------------
+            # SAVE STATE
+            # -------------------------------------------------
 
             state = {
                 "profile": profile.model_dump(),
+
                 "raw_results": [
-                    x.model_dump()
-                    for x in raw
+                    item.model_dump()
+                    for item in raw
                 ],
+
                 "records": [
-                    x.model_dump()
-                    for x in records
+                    record.model_dump()
+                    for record in records
                 ],
+
                 "gap": gap.model_dump(),
+
                 "rows": rows,
+
                 "weekly": weekly,
+
                 "queries": queries,
             }
 
@@ -220,12 +333,17 @@ if run:
             )
 
 
+# ---------------------------------------------------------------------
+# LOAD CURRENT STATE
+# ---------------------------------------------------------------------
+
 state = st.session_state.get("run")
+
 
 if not state:
     st.info(
-        "Upload a CV, add research interests, then run the agents — "
-        "or enable Demo mode."
+        "Upload a CV, add research interests, then run "
+        "the agents — or enable Demo mode."
     )
     st.stop()
 
@@ -234,6 +352,10 @@ profile = state["profile"]
 gap = state["gap"]
 rows = state["rows"]
 
+
+# ---------------------------------------------------------------------
+# TABS
+# ---------------------------------------------------------------------
 
 tab1, tab2, tab3, tab4 = st.tabs(
     [
@@ -245,8 +367,15 @@ tab1, tab2, tab3, tab4 = st.tabs(
 )
 
 
+# =====================================================================
+# TAB 1 — DISCOVER
+# =====================================================================
+
 with tab1:
-    st.subheader("Extracted profile")
+
+    st.subheader(
+        "Extracted profile"
+    )
 
     with st.expander(
         "CandidateProfile",
@@ -259,9 +388,10 @@ with tab1:
     )
 
     if rows:
+
         st.caption(
-            "⚠️ Verify every deadline on the official scholarship site "
-            "before applying."
+            "⚠️ Verify every deadline on the official "
+            "scholarship site before applying."
         )
 
         st.dataframe(
@@ -271,40 +401,78 @@ with tab1:
         )
 
     else:
+
         st.warning(
-            "No validated scholarship records were produced. "
-            "Try Demo mode or another search."
+            "No validated scholarship records were "
+            "produced. Try Demo mode or another search."
         )
 
 
+# =====================================================================
+# TAB 2 — GAP ANALYSIS
+# =====================================================================
+
 with tab2:
-    st.subheader("Overall strengths")
 
-    for item in gap.get("overall_strengths", []):
-        st.write("•", item)
+    st.subheader(
+        "Overall strengths"
+    )
 
-    st.subheader("Common gaps")
+    for item in gap.get(
+        "overall_strengths",
+        [],
+    ):
+        st.write(
+            "•",
+            item,
+        )
 
-    for item in gap.get("common_gaps", []):
-        st.write("•", item)
+    st.subheader(
+        "Common gaps"
+    )
 
-    st.subheader("Per-scholarship recommendations")
+    for item in gap.get(
+        "common_gaps",
+        [],
+    ):
+        st.write(
+            "•",
+            item,
+        )
 
-    for item in gap.get("per_scholarship", []):
+    st.subheader(
+        "Per-scholarship recommendations"
+    )
+
+    for item in gap.get(
+        "per_scholarship",
+        [],
+    ):
+
         with st.expander(
             f"{item['scholarship_name']} — "
             f"{item['priority']} priority"
         ):
+
             st.write(
                 "**Weaknesses:**",
-                ", ".join(item["weaknesses"])
+                ", ".join(
+                    item["weaknesses"]
+                )
                 or "None identified",
             )
 
-            st.write("**Recommendations:**")
+            st.write(
+                "**Recommendations:**"
+            )
 
-            for recommendation in item["recommendations"]:
-                st.write("•", recommendation)
+            for recommendation in item[
+                "recommendations"
+            ]:
+                st.write(
+                    "•",
+                    recommendation,
+                )
 
             st.write(
                 "**Estimated prep:**",
@@ -312,18 +480,42 @@ with tab2:
             )
 
 
-with tab3:
-    st.subheader("Application tracker")
+# =====================================================================
+# TAB 3 — APPLICATION TRACKER
+# =====================================================================
 
+with tab3:
+
+    st.subheader(
+        "Application tracker"
+    )
+
+    # Calculate tracker statistics from the current rows.
     tracker_stats = summary(rows)
 
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Total", tracker_stats["total"])
-    c2.metric("Applied", tracker_stats["applied"])
-    c3.metric("Pending", tracker_stats["pending"])
-    c4.metric("Critical", tracker_stats["critical"])
+    c1.metric(
+        "Total",
+        tracker_stats["total"],
+    )
 
+    c2.metric(
+        "Applied",
+        tracker_stats["applied"],
+    )
+
+    c3.metric(
+        "Pending",
+        tracker_stats["pending"],
+    )
+
+    c4.metric(
+        "Critical",
+        tracker_stats["critical"],
+    )
+
+    # Application progress.
     st.progress(
         (
             tracker_stats["applied"]
@@ -333,26 +525,40 @@ with tab3:
         else 0
     )
 
-    st.info(state["weekly"])
+    st.info(
+        state["weekly"]
+    )
+
+    # -------------------------------------------------------------
+    # EDITABLE TRACKER
+    # -------------------------------------------------------------
 
     if rows:
+
         edited = apply_status_edits(rows)
 
-        if rows:
-    edited = apply_status_edits(rows)
+        # apply_status_edits() already returns a list of
+        # dictionaries, so do NOT call .to_dict() here.
+        state["rows"] = edited
 
-    state["rows"] = edited.to_dict("records")
-    st.session_state["run"] = state
+        # Save updated rows back into Streamlit session state.
         st.session_state["run"] = state
+
+    # -------------------------------------------------------------
+    # CRITICAL DEADLINES
+    # -------------------------------------------------------------
 
     critical = [
         row
         for row in state["rows"]
-        if row["urgency"] == "Critical"
+        if row.get("urgency") == "Critical"
     ]
 
     if critical:
-        st.warning("Critical deadlines")
+
+        st.warning(
+            "Critical deadlines"
+        )
 
         st.dataframe(
             critical,
@@ -361,8 +567,15 @@ with tab3:
         )
 
 
+# =====================================================================
+# TAB 4 — EXPORT
+# =====================================================================
+
 with tab4:
-    st.subheader("Excel export")
+
+    st.subheader(
+        "Excel export"
+    )
 
     excel = build_excel(
         state["rows"],
