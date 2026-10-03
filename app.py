@@ -50,17 +50,23 @@ def save_state(state):
 
 def apply_status_edits(rows):
     if not rows:
-        return rows
+        return []
 
-    updated = st.data_editor(
+    edited = st.data_editor(
         rows,
         use_container_width=True,
         hide_index=True,
         column_config={
-            "official_link": st.column_config.LinkColumn("Official link"),
+            "official_link": st.column_config.LinkColumn(
+                "Official link"
+            ),
             "status": st.column_config.SelectboxColumn(
                 "Status",
-                options=["Remaining", "Pending", "Applied"],
+                options=[
+                    "Remaining",
+                    "Pending",
+                    "Applied",
+                ],
                 required=True,
             ),
             "fit_score": st.column_config.NumberColumn(
@@ -70,12 +76,20 @@ def apply_status_edits(rows):
             ),
         },
         disabled=[
-            c for c in rows[0].keys()
-            if c not in {"status", "notes"}
+            column
+            for column in rows[0].keys()
+            if column not in {"status", "notes"}
         ],
         key="tracker_editor",
     )
-    return updated
+
+    if hasattr(edited, "to_dict"):
+        return edited.to_dict("records")
+
+    if isinstance(edited, list):
+        return edited
+
+    return rows
 
 
 st.title("🎓 ScholarHunter Agents")
