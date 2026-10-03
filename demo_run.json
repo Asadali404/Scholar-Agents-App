@@ -1,0 +1,148 @@
+{
+  "profile": {
+    "degree": "BS Telecommunication Engineering",
+    "field": "Telecommunication Engineering",
+    "cgpa": null,
+    "technical_skills": [
+      "Python",
+      "Machine Learning",
+      "Deep Learning",
+      "Networking"
+    ],
+    "research_pillars": [
+      "Machine Learning",
+      "Deep Learning",
+      "Data Science",
+      "Intelligent Systems"
+    ],
+    "publications_count": null,
+    "experience_years": null,
+    "tests_taken": [
+      "IELTS 7.5"
+    ],
+    "keywords": [
+      "machine learning",
+      "deep learning",
+      "data science",
+      "AI",
+      "intelligent systems",
+      "robotics",
+      "computer vision",
+      "medical image processing"
+    ],
+    "target_level": "MS",
+    "target_domain": "Artificial Intelligence",
+    "countries": [
+      "South Korea",
+      "Germany",
+      "UK"
+    ]
+  },
+  "raw_results": [],
+  "records": [
+    {
+      "country": "South Korea",
+      "scholarship_name": "Demo Graduate Scholarship",
+      "provider": "Demo University",
+      "level": "MS",
+      "deadline": null,
+      "requirements": [
+        "CV",
+        "SOP",
+        "IELTS"
+      ],
+      "funding": "Tuition + stipend",
+      "official_link": "https://example.edu/scholarship",
+      "confidence": "low",
+      "fit_score": 82
+    },
+    {
+      "country": "Germany",
+      "scholarship_name": "Demo Research Scholarship",
+      "provider": "Demo Foundation",
+      "level": "MS",
+      "deadline": null,
+      "requirements": [
+        "CV",
+        "SOP",
+        "Proposal"
+      ],
+      "funding": "Stipend",
+      "official_link": "https://example.org/scholarship",
+      "confidence": "low",
+      "fit_score": 76
+    }
+  ],
+  "gap": {
+    "overall_strengths": [
+      "AI/deep-learning project experience",
+      "IELTS 7.5 stated",
+      "Engineering background"
+    ],
+    "common_gaps": [
+      "Research proposal experience may need strengthening"
+    ],
+    "per_scholarship": [
+      {
+        "scholarship_name": "Demo Graduate Scholarship",
+        "weaknesses": [
+          "No specific gap supported by the demo evidence"
+        ],
+        "recommendations": [
+          "Verify current language and document requirements"
+        ],
+        "priority": "medium",
+        "est_prep_time": "1-2 weeks"
+      },
+      {
+        "scholarship_name": "Demo Research Scholarship",
+        "weaknesses": [
+          "Proposal requirement should be prepared"
+        ],
+        "recommendations": [
+          "Prepare a concise research concept aligned with the target lab"
+        ],
+        "priority": "high",
+        "est_prep_time": "2-3 weeks"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": 1,
+      "country": "South Korea",
+      "scholarship_name": "Demo Graduate Scholarship",
+      "provider": "Demo University",
+      "level": "MS",
+      "deadline": "",
+      "requirements": "CV, SOP, IELTS",
+      "funding": "Tuition + stipend",
+      "official_link": "https://example.edu/scholarship",
+      "confidence": "low",
+      "fit_score": 82,
+      "status": "Remaining",
+      "days_left": null,
+      "urgency": "Verify",
+      "notes": ""
+    },
+    {
+      "id": 2,
+      "country": "Germany",
+      "scholarship_name": "Demo Research Scholarship",
+      "provider": "Demo Foundation",
+      "level": "MS",
+      "deadline": "",
+      "requirements": "CV, SOP, Proposal",
+      "funding": "Stipend",
+      "official_link": "https://example.org/scholarship",
+      "confidence": "low",
+      "fit_score": 76,
+      "status": "Remaining",
+      "days_left": null,
+      "urgency": "Verify",
+      "notes": ""
+    }
+  ],
+  "weekly": "Demo mode: 2 remaining scholarships; deadlines require verification.",
+  "queries": []
+}
