@@ -1,0 +1,1 @@
+"""ScholarHunter application package."""
